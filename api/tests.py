@@ -6,6 +6,7 @@ from django.test import TestCase
 from rest_framework.test import APIClient
 from rest_framework import status
 from django.core.urlresolvers import reverse
+from django.contrib.auth.models import User
 from .models import Bucketlist
 class ModelTestCase(TestCase):
     """
@@ -15,8 +16,9 @@ class ModelTestCase(TestCase):
         """
         define the test client and other variables
         """
+        user = User.objects.create(username="nerd")
         self.bucketlist_name = "Write world class code"
-        self.bucketlist = Bucketlist(name=self.bucketlist_name)
+        self.bucketlist = Bucketlist(name=self.bucketlist_name, owner=user)
 
     def test_create_bucketlist(self):
         """
@@ -32,8 +34,10 @@ class ViewTestCase(TestCase):
     Test suite for api views
     """
     def setUp(self):
+        user = User.objects.create(username="nerd")
         self.client = APIClient()
-        self.bucketlist_data = { 'name': 'Go to Ibiza' }
+        self.client.force_authenticate(user=user)
+        self.bucketlist_data = { 'name': 'Go to Ibiza', 'owner': user.id }
         self.response = self.client.post(
             reverse('create'),
             self.bucketlist_data,
